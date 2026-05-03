@@ -65,19 +65,16 @@ def weightage():
 def full_table(df, weights):
     stats = ['PER', 'TS', 'WS', 'BPM', 'PPG', 'AST', 'TRB', 'BLK', 'STL']
     for stat in stats:
-        # make a new column for every stat, but normalised. min-max normalisation is used
         df[f'{stat}_norm'] = (df[stat] - df[stat].min()) / (df[stat].max() - df[stat].min())
 
-    # to calculated MVP score, we used (nomalised stat x * weightage for that stat). We do that for every stat of a player and add them together
     df['MVP_score'] = sum(df[stat_norm] * weight for stat_norm, weight in weights.items())
-    df = df.sort_values('MVP_score', ascending= False)
+    df = df.sort_values('MVP_score', ascending=False).head(10).reset_index(drop=True)
+    df.index += 1
 
-    cols = list(df.columns)
-    mins_played_col_index, mvp_score_col_index = cols.index('minutes_played'), cols.index('MVP_score')
-    cols[mvp_score_col_index], cols[mins_played_col_index] = cols[mins_played_col_index], cols[mvp_score_col_index]
-    df = df[cols]
-
-    return df.head(10).reset_index(drop=True)
+    display_cols = ['name', 'team', 'MVP_score', 'PPG', 'AST', 'TRB', 'BLK', 'STL', 'PER', 'TS', 'WS', 'BPM']
+    result = df[display_cols].copy()
+    result['MVP_score'] = result['MVP_score'].round(4)
+    return result
 
 
 
@@ -88,9 +85,9 @@ what_year = int(input("Which season's full stats would you like?: "))
 try:
     merged_df = pre_score_table(what_year)
     weights = weightage()
-    print(' ')
+    print(f'\n=== Top 10 MVP Candidates — {what_year} Season ===')
     print(full_table(merged_df, weights).to_string())
-    print(' ')
+    print(f'\n=== Actual MVP Voting Results — {what_year} Season ===')
     print(historical_MVP_race_table(what_year))
 except ValueError as e:
     print(f'Error: {e}')

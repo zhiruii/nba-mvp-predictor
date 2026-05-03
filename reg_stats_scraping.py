@@ -1,77 +1,30 @@
 import pandas as pd
-from bs4 import BeautifulSoup
-import requests
-from collections import namedtuple
+import os
+
+BASE_DIR = os.path.dirname(__file__)
 
 def reg_stats_table(year):
-    # scrapes NBA per-game stats for a given season from basketball-reference.com
-    url = f'https://www.basketball-reference.com/leagues/NBA_{year}_per_game.html'
-    response= requests.get(url)
+    season_code = f"{(year - 1) % 100:02d}{year % 100:02d}"
+    path = os.path.join(BASE_DIR, f"{season_code} season", f"{season_code} per game.xlsx")
 
-    if response.status_code != 200:
-        raise ValueError (f"Failed to retrieve data for year {year}. HTTP Status Code: {response.status_code}")
+    if not os.path.exists(path):
+        raise ValueError(f"No per-game stats file found for season {season_code}: {path}")
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    tables = soup.find_all('table')
+    df = pd.read_excel(path)
 
-    # extract target table and its body
-    table1 = tables[0]
-    tbody = table1.find('tbody')
+    # For traded players, keep only the multi-team totals row (e.g. "2TM", "3TM")
+    totals_mask = df['Team'].str.match(r'\d+TM', na=False)
+    traded_players = set(df.loc[totals_mask, 'Player'])
+    df = df[~df['Player'].isin(traded_players) | totals_mask]
 
-    raw_data_reg = tbody.text
+    # MP is per-game here, so multiply by G for total minutes
+    df = df[df['G'] * df['MP'] > 1560]
 
-    entries_reg = []
-    games_played = 0
-    minutes_pg = 0
-    # player stats separated by 3 spaces
-    players_reg = raw_data_reg.strip().split('   ')
+    df = df.rename(columns={
+        'Player': 'name',
+        'Age': 'age',
+        'Team': 'team',
+        'PTS': 'PPG',
+    })
 
-    for i in players_reg:
-        player_reg = i.split()
-        # removal of trailing MVP/ All-star tags, just like in the scraping of advanced stats
-        try:
-            float(player_reg[-1])
-        except IndexError:
-            pass
-        except ValueError:
-            player_reg.pop()
-        # handle players with 3+ word names (e.g., "Kelly Oubre Jr."). Players with typical 2-worded names have info len of 30
-        if len(player_reg) < 31:
-            pass
-        else:
-            if len(player_reg) > 31:
-                more_by = len(player_reg) - 31
-                # in case player has 4, 5 worded-names
-                for j in range(more_by):
-                    player_reg[2] = str(player_reg[2] + " " + player_reg[3])
-                    del player_reg[3]
-            #unlike in advanced stats, total minutes played must be manually calculated. This is done after removing award tags and name inconsistency
-            #so that the indexing stays consistent
-            try:
-                games_played = float(player_reg[6])
-                minutes_pg = float(player_reg[8])
-            except ValueError:
-                pass
-
-            if int(games_played * minutes_pg) > 1560:
-                entries_reg.append(player_reg)
-
-    Player_reg = namedtuple('Player_reg', ['name', 'age','team','PPG', 'AST', 'TRB', 'BLK','STL'])
-    reg_data_filtered = []
-    added_names = set()
-    for entry in entries_reg:
-        player_reg = Player_reg(str(entry[1] + ' '+ entry[2]), int(entry[3]), entry[4], float(entry[-1]), float(entry[-6]), float(entry[-7]), float(entry[-4]), float(entry[-5]))
-
-        if player_reg.name not in added_names:
-            added_names.add(player_reg.name)
-            reg_data_filtered.append(player_reg)
-
-    reg_df = pd.DataFrame(reg_data_filtered)
-    return reg_df
-
-#what_year = int(input("Which season's reg stats would you like?: "))
-#try:
-    #reg_df = reg_stats_table(what_year)
-    #print(reg_df.to_string())
-#except ValueError as e:
-    #print(f'Error: {e}')
+    return df[['name', 'age', 'team', 'PPG', 'AST', 'TRB', 'BLK', 'STL']].reset_index(drop=True)

@@ -3,5 +3,3 @@ uvicorn
 pandas
 scikit-learn
 numpy
-requests
-beautifulsoup4

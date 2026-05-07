@@ -2,6 +2,7 @@
 
 A machine learning model that predicts the NBA MVP for any season from 1985 to present (2026).
 
+All data soursed from Basketball Reference. Manipulation and cleaning of data done using build_dataset.py. All statistics used for educational / non-commercial purposes only.
 ## How it works
 
 A Random Forest classifier trained on 42 seasons of NBA data (1985–2026) ranks players by their probability of winning MVP. The model uses 7 features selected via domain knowledge and feature importance analysis:

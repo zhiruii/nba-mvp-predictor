@@ -1,2 +1,5 @@
-mvp_dataset.csv
+**/mvp_dataset.csv
 CLAUDE.md
+**/rf_model.pkl
+**/__pycache__/
+*.pyc

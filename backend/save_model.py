@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
 
 print("Loading dataset...")
-df = pd.read_csv('../mvp_dataset.csv')
+df = pd.read_csv('mvp_dataset.csv')
 
 features = ['WS', 'PER', 'BPM', 'VORP', 'PPG', 'AST', 'team_wins']
 

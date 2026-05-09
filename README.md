@@ -3,6 +3,7 @@
 A machine learning model that predicts the NBA MVP for any season from 1985 to present (2026).
 
 Live Site -> https://nba-mvp-predictor.vercel.app
+Backend hosted on Render, may take 30s to wake up on first load.
 
 All data sourced from Basketball Reference. Manipulation and cleaning of data done using build_dataset.py. All statistics used for educational / non-commercial purposes only.
 

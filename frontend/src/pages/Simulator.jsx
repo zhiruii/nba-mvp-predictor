@@ -96,7 +96,9 @@ export default function Simulator() {
   }, [baseStats]) // only on player load / reset, not on every slider move
 
   function handleSlider(key, value) {
-    setOverrides(prev => ({ ...prev, [key]: Number(value) }))
+    const num = Number(value)
+    setOverrides(prev => ({ ...prev, [key]: num }))
+    setInputValues(prev => ({ ...prev, [key]: num.toFixed(1) }))
   }
 
   function handleInputCommit(key, rawStr, min, max) {

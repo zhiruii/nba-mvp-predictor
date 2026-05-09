@@ -1,0 +1,927 @@
+/* ── Variables ─────────────────────────────────────────────────── */
+:root {
+  --bg:           #0f172a;
+  --bg-panel:     #1e293b;
+  --bg-dark:      #0a1020;
+  --hardwood:     #c8965a;
+  --hardwood-dk:  #a07040;
+  --court-line:   #f0e6c8;
+  --gold:         #ffcc00;
+  --gold-dk:      #cc9900;
+  --gold-dim:     rgba(255, 204, 0, 0.15);
+  --locker:       #5d4037;
+  --locker-lt:    #795548;
+  --locker-dk:    #3e2723;
+  --green:        #22c55e;
+  --red:          #ef4444;
+  --blue:         #60a5fa;
+  --text:         #f1f5f9;
+  --text-muted:   #94a3b8;
+  --border:       rgba(255, 255, 255, 0.10);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 20px;
+  overflow-x: hidden;
+  min-height: 100vh;
+  /* Scanline overlay for retro CRT effect */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+}
+
+/* ── Typography ────────────────────────────────────────────────── */
+.font-pixel { font-family: 'Press Start 2P', cursive; }
+.font-vt    { font-family: 'VT323', 'Courier New', monospace; }
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar              { width: 8px; }
+::-webkit-scrollbar-track        { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb        { background: var(--gold-dk); }
+::-webkit-scrollbar-thumb:hover  { background: var(--gold); }
+
+/* ── Animations ────────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes scanline {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.4); }
+  50%       { box-shadow: 0 0 12px 4px rgba(255, 204, 0, 0.2); }
+}
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(-100%); }
+}
+
+.blink   { animation: blink 1s step-start infinite; }
+.fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+/* ── Layout ────────────────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-inner {
+  width: 100%;
+  max-width: 1100px;
+  padding: 0 16px 48px;
+}
+
+/* ── Scoreboard Header ─────────────────────────────────────────── */
+.scoreboard {
+  width: 100%;
+  background: #000;
+  border-bottom: 4px solid var(--gold-dk);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scoreboard-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.scoreboard-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.scoreboard-stat {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--text-muted);
+}
+
+.scoreboard-stat span {
+  color: var(--gold);
+}
+
+/* ── Marquee ticker ────────────────────────────────────────────── */
+.ticker-wrap {
+  width: 100%;
+  background: var(--locker-dk);
+  border-bottom: 2px solid var(--locker);
+  overflow: hidden;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-inner {
+  white-space: nowrap;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--gold);
+  animation: marquee 30s linear infinite;
+  padding-left: 100%;
+}
+
+/* ── Pixel Panel ───────────────────────────────────────────────── */
+.pixel-panel {
+  background: var(--bg-panel);
+  border: 4px solid var(--border);
+  padding: 20px;
+}
+
+.pixel-panel-gold {
+  background: var(--bg-panel);
+  border: 4px solid var(--gold-dk);
+}
+
+/* ── Pixel Button ──────────────────────────────────────────────── */
+.pixel-btn {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  background: var(--gold);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 0 var(--gold-dk);
+  transition: none;
+  line-height: 1;
+}
+
+.pixel-btn:hover  { background: #ffe033; }
+.pixel-btn:active { transform: translate(4px, 4px); box-shadow: none; }
+.pixel-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.pixel-btn-ghost {
+  background: transparent;
+  color: var(--gold);
+  border: 4px solid var(--gold-dk);
+  box-shadow: 4px 4px 0 var(--locker-dk);
+}
+.pixel-btn-ghost:hover  { background: var(--gold-dim); }
+.pixel-btn-ghost:active { transform: translate(4px, 4px); box-shadow: none; }
+
+/* ── Pixel Select ──────────────────────────────────────────────── */
+.pixel-select {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  background: var(--bg-dark);
+  color: var(--text);
+  border: 4px solid var(--gold-dk);
+  padding: 10px 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 180px;
+}
+.pixel-select:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ── Pixel Input ───────────────────────────────────────────────── */
+.pixel-input {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  background: var(--bg-dark);
+  color: var(--text);
+  border: 4px solid var(--gold-dk);
+  padding: 8px 12px;
+  width: 100%;
+}
+.pixel-input:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ── Pixel Range Slider ────────────────────────────────────────── */
+.pixel-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 18px;
+  background: var(--bg-dark);
+  border: 3px solid var(--gold-dk);
+  cursor: pointer;
+  outline: none;
+}
+.pixel-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 26px;
+  background: var(--gold);
+  cursor: pointer;
+  border: 2px solid var(--gold-dk);
+}
+.pixel-range::-moz-range-thumb {
+  width: 22px;
+  height: 26px;
+  background: var(--gold);
+  cursor: pointer;
+  border: 2px solid var(--gold-dk);
+  border-radius: 0;
+}
+
+/* ── Section Title ─────────────────────────────────────────────── */
+.section-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  color: var(--gold);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 4px solid var(--gold-dk);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Back Button ───────────────────────────────────────────────── */
+.back-btn {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--gold);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  margin-bottom: 20px;
+}
+.back-btn:hover { color: var(--text); }
+
+/* ── Pixel basketball bounce animation ─────────────────────────── */
+@keyframes pixel-bounce {
+  0%   { transform: translateY(0px);   }
+  20%  { transform: translateY(-16px); }
+  40%  { transform: translateY(-16px); }
+  55%  { transform: translateY(0px);   }
+  65%  { transform: translateY(-6px);  }
+  80%  { transform: translateY(0px);   }
+  100% { transform: translateY(0px);   }
+}
+
+@keyframes pixel-shadow-pulse {
+  0%   { transform: scaleX(1.0); opacity: 0.45; }
+  20%  { transform: scaleX(0.35); opacity: 0.15; }
+  40%  { transform: scaleX(0.35); opacity: 0.15; }
+  55%  { transform: scaleX(1.0); opacity: 0.45; }
+  65%  { transform: scaleX(0.65); opacity: 0.30; }
+  80%  { transform: scaleX(1.0); opacity: 0.45; }
+  100% { transform: scaleX(1.0); opacity: 0.45; }
+}
+
+/* ── Loading Screen ────────────────────────────────────────────── */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 60px 20px;
+  min-height: 300px;
+}
+
+.pixel-basketball-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pixel-basketball-svg {
+  animation: pixel-bounce 0.9s steps(7, end) infinite;
+}
+
+.pixel-basketball-shadow {
+  width: 36px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  animation: pixel-shadow-pulse 0.9s steps(7, end) infinite;
+}
+
+.loading-text {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-basketball-svg,
+  .pixel-basketball-shadow { animation: none; }
+}
+
+/* ── Error Screen ──────────────────────────────────────────────── */
+.error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.error-code {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 32px;
+  color: var(--red);
+}
+
+.error-msg {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  color: var(--text-muted);
+  max-width: 400px;
+  line-height: 2;
+}
+
+/* ── Basketball Court ──────────────────────────────────────────── */
+.court-wrapper {
+  width: 100%;
+  position: relative;
+  aspect-ratio: 940 / 440;
+  overflow: hidden;
+  border: 6px solid var(--hardwood-dk);
+  margin-bottom: 32px;
+  box-shadow: 0 8px 0 #6b4c2a;
+}
+
+/* ── Leaderboard Overlay (on court) ────────────────────────────── */
+.leaderboard-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 2;
+}
+
+.leaderboard-box {
+  background: rgba(10, 16, 32, 0.92);
+  border: 4px solid var(--gold-dk);
+  width: 100%;
+  max-width: 700px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.leaderboard-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+}
+
+/* ── Player Row ────────────────────────────────────────────────── */
+.player-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 52px auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+}
+.player-row:last-child { border-bottom: none; }
+.player-row:hover { background: rgba(255, 204, 0, 0.05); }
+
+.player-rank {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--gold-dk);
+  text-align: right;
+}
+
+.player-name {
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-team {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Pixel Probability Bar ─────────────────────────────────────── */
+.pixel-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pixel-bar-track {
+  display: flex;
+  gap: 2px;
+}
+
+.pixel-bar-seg {
+  width: 10px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.pixel-bar-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--gold);
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ── Fatigue Indicator ─────────────────────────────────────────── */
+.fatigue-notice {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--red);
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid var(--red);
+  padding: 8px 12px;
+  margin-top: 10px;
+  line-height: 1.8;
+}
+
+.fatigue-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Disclaimer ────────────────────────────────────────────────── */
+.disclaimer {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--text-muted);
+  border: 3px solid var(--text-muted);
+  padding: 12px 16px;
+  margin-top: 12px;
+  line-height: 2;
+  text-align: center;
+}
+
+/* ── Fan cheering animation ────────────────────────────────────── */
+@keyframes fan-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+
+/* ── Locker Room ───────────────────────────────────────────────── */
+.locker-room {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 32px;
+}
+
+/* ── Locker (metal) ────────────────────────────────────────────── */
+.locker {
+  width: 200px;
+  min-height: 280px;
+  background: linear-gradient(180deg,
+    #8a9eac 0%,
+    #6a7e8c 15%,
+    #4a5e6c 70%,
+    #6a7e8c 100%
+  );
+  border: 4px solid #252f38;
+  box-shadow: 6px 6px 0 #151c22, inset 2px 0 0 #a0b4c0, inset -2px 0 0 #3a4e5c;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 16px;
+  transition: none;
+  user-select: none;
+  position: relative;
+}
+
+.locker::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.locker:hover {
+  background: linear-gradient(180deg,
+    #9aaebb 0%,
+    #7a8e9c 15%,
+    #5a6e7c 70%,
+    #7a8e9c 100%
+  );
+  transform: translateY(-4px);
+  box-shadow: 6px 10px 0 #151c22, inset 2px 0 0 #b0c4d0, inset -2px 0 0 #4a5e6c;
+}
+
+.locker:active {
+  transform: translate(6px, 6px);
+  box-shadow: none;
+}
+
+/* Rivets */
+.locker-rivets {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px 0;
+}
+
+.locker-rivet {
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle at 35% 35%, #c0d0dc, #7a8a96);
+  border: 1px solid #3a4a56;
+  border-radius: 50%;
+}
+
+.locker-vents {
+  width: 90%;
+  background: #2a3a44;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 2px solid #1a2a34;
+  margin: 4px 0 0;
+}
+
+.locker-vent-line {
+  height: 4px;
+  background: #1a2430;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.locker-interior {
+  flex: 1;
+  width: 90%;
+  background: #1a2a34;
+  border: 2px solid #1a2430;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 4px;
+  position: relative;
+}
+
+/* Badge strip pinned to the top of each locker */
+.locker-badge-top {
+  width: 100%;
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 14, 28, 0.82);
+  border-bottom: 3px solid var(--gold-dk);
+  flex-shrink: 0;
+}
+
+.locker-badge-top svg {
+  max-height: 46px;
+  width: auto;
+}
+
+.locker-handle {
+  width: 44px;
+  height: 14px;
+  background: linear-gradient(180deg, #9aacb8, #6a7e8c);
+  border: 2px solid #3a4a56;
+  margin: 8px 0 10px;
+  position: relative;
+  box-shadow: 0 2px 0 #252f38;
+}
+
+.locker-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 7px;
+  background: #b0c0cc;
+  border: 1px solid #6a7e8c;
+}
+
+.locker-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: #e0eaf0;
+  text-align: center;
+  line-height: 2;
+  padding: 0 10px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.locker-sublabel {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 6px;
+  color: #7a9aaa;
+  text-align: center;
+  margin-top: 6px;
+  padding: 0 10px;
+}
+
+/* ── No-data screen ────────────────────────────────────────────── */
+.no-data-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.no-data-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.no-data-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  color: var(--gold);
+  line-height: 2;
+}
+
+.no-data-body {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--text-muted);
+  line-height: 2.2;
+  border: 3px solid var(--text-muted);
+  padding: 12px 16px;
+  max-width: 380px;
+}
+
+/* ── MVP Crown ─────────────────────────────────────────────────── */
+.crown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold);
+  color: #000;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  padding: 4px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ── Stats Table ───────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.stat-cell {
+  background: var(--bg-dark);
+  border: 2px solid var(--border);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-cell-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 6px;
+  color: var(--text-muted);
+}
+
+.stat-cell-value {
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* ── Compare Layout ────────────────────────────────────────────── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.compare-player-header {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  color: var(--gold);
+  text-align: center;
+  padding: 12px;
+  background: var(--bg-dark);
+  border: 4px solid var(--gold-dk);
+  margin-bottom: 12px;
+}
+
+.compare-vs {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 28px;
+  color: var(--red);
+  text-align: center;
+  margin: 20px 0;
+  text-shadow: 4px 4px 0 #7f1d1d;
+}
+
+/* ── Simulator Slider Row ──────────────────────────────────────── */
+.slider-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.slider-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--gold);
+  text-align: right;
+}
+
+.slider-value {
+  font-family: 'VT323', monospace;
+  font-size: 24px;
+  color: var(--text);
+  text-align: center;
+  background: var(--bg-dark);
+  border: 3px solid var(--border);
+  padding: 2px 8px;
+}
+
+.slider-value-input {
+  cursor: text;
+  border-color: var(--gold-dk);
+  -moz-appearance: textfield;
+  width: 72px;
+}
+
+.slider-value-input::-webkit-outer-spin-button,
+.slider-value-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.slider-value-input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ── Probability Result ────────────────────────────────────────── */
+.prob-result {
+  background: var(--bg-dark);
+  border: 4px solid var(--gold-dk);
+  padding: 24px;
+  text-align: center;
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.prob-result-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.prob-result-value {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 28px;
+  color: var(--gold);
+  text-shadow: 4px 4px 0 var(--gold-dk);
+}
+
+.prob-result-rank {
+  font-family: 'VT323', monospace;
+  font-size: 24px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ── Form Controls Row ─────────────────────────────────────────── */
+.controls-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  color: var(--text-muted);
+}
+
+/* ── Historical Season Card ────────────────────────────────────── */
+.historical-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.meta-badge {
+  background: var(--bg-dark);
+  border: 3px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-badge-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 6px;
+  color: var(--text-muted);
+}
+
+.meta-badge-value {
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+.footer {
+  width: 100%;
+  background: #000;
+  border-top: 4px solid var(--locker-dk);
+  padding: 14px 24px;
+  text-align: center;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 6px;
+  color: var(--text-muted);
+  line-height: 2.5;
+  margin-top: auto;
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .scoreboard { flex-direction: column; align-items: flex-start; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .locker { width: 160px; min-height: 220px; }
+  .controls-row { flex-direction: column; align-items: stretch; }
+  .pixel-select { min-width: unset; width: 100%; }
+  .player-row { grid-template-columns: 24px 1fr 40px; }
+  .player-row .pixel-bar-wrap { display: none; }
+}
+
+@media (max-width: 480px) {
+  .locker-room { gap: 12px; }
+  .locker { width: 140px; }
+  .locker-label { font-size: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink, .fade-in, .ticker-inner { animation: none; }
+}

@@ -4,9 +4,7 @@ A machine learning model that predicts the NBA MVP for any season from 1985 to p
 
 This project focuses on the modeling pipeline, including feature engineering, handling class imbalance, and evaluating a classifier at extreme class skew. The web interface exists to make predictions accessible
 
-Live Site -> https://nba-mvp-predictor.vercel.app
-
-Backend hosted on Render, may take 30s to wake up on first load.
+Live Site -> https://nba-mvp-predictor.vercel.app -> may take 30s to wake up on first load.
 
 All data sourced from Basketball Reference. Manipulation and cleaning of data done using build_dataset.py. All statistics used for educational / non-commercial purposes only.
 

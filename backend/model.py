@@ -138,8 +138,8 @@ def simulate(
     Replace one player's stats with overrides, recompute team_wins, renormalize, predict.
     Returns {mvp_prob, mvp_prob_adjusted, rank}.
 
-    Limitation: User may end up change Win-Shares and cause team_wins to be greater than 82 (impossible)
-    But since we normalise team_wins anyways in our model. The limitation is less impactful.
+    Limitation: User may end up tweaking Win-Shares and cause team_wins to be greater than full 82-games season. (impossible)
+    But since we normalise team_wins anyways in our model, the limitation is less impactful.
     Since this is a what-if simulation for fun, we can accept this imperfection for now to avoid overcomplications.
     """
     seasons_with_mvp = df.groupby('year')['mvp_label'].sum()

@@ -1,5 +1,4 @@
 CLAUDE.md
-**/rf_model.pkl
 **/__pycache__/
 *.pyc
 data/

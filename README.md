@@ -25,13 +25,25 @@ Stats are normalized within each season independently so cross-era comparisons a
 
 ## Key design decisions
 
+**Minutes filter:** Only players with more than 1,560 total minutes qualify. Advanced stats use actual total MP directly. Per-game stats don't carry total minutes, so the filter approximates with `G × MP` (games × minutes-per-game). Players near the boundary may pass one filter but not the other and are silently dropped by the inner join.
+
+**Binary label:** MVP = 1, everyone else = 0. The model is trained to separate the winner from the field, not to predict vote share or rank top-3 finishers. This keeps the problem well-defined and avoids label ambiguity in close races.
+
+**Era-appropriate games filter:** 49+ games for seasons before 2024, 65+ games from 2024 onwards. The NBA introduced a 65-game eligibility threshold for awards in 2024 — the model mirrors this rule so predictions are consistent with how voters actually behave.
+
 **Class imbalance:** Handled via `class_weight='balanced'` — penalises MVP misclassification ~165x more heavily than non-MVP given the 1:165 class ratio.
+
+**Evaluation metric — average precision:** Accuracy and AUC-ROC are misleading at 1:165 imbalance (predicting 0 for everyone gives 99.4% accuracy). Average precision focuses specifically on how well the model ranks MVPs to the top of the leaderboard, which is exactly the task. Evaluated via StratifiedKFold (k=5) to preserve the class ratio across folds.
+
+**Probability ranking, not binary prediction:** The model outputs `predict_proba` scores rather than hard `predict` labels. This produces a ranked leaderboard of MVP probabilities, which is more informative than a binary winner/no-winner split.
+
+**Team wins proxy:** Basketball Reference defines WS so that team totals ≈ team wins. Team wins are derived by summing WS across all non-traded players on each team. Traded players (team listed as `TOT`/`2TM`/`3TM`) are excluded from this sum because their WS can't be attributed to a single team — and as a consequence of getting no `team_wins` value, they are dropped from both training and prediction entirely. No traded player has ever won MVP, so this is an acceptable constraint, not a loss of signal. Absolute values are understated because bench players under the minutes filter are excluded, but within-season normalisation preserves the relative team ranking which is all the model needs.
 
 **Voter fatigue:** A 0.90x post-processing discount is applied to the 2 most recent MVP winners before the target year to reflect real voter behaviour.
 
-**Team wins proxy:** Basketball Reference defines WS so that every player WS totals ≈ team wins. Only non-traded players are summed to get the num of wins of their team (exclude team == TOT/2TM/3TM); traded players get NaN and are dropped since they are never MVP candidates. Absolute values are understated because the minutes filter excludes bench players, but within-season normalisation preserves the relative team ranking which is all the model needs. Added +0.0077 mean AP (+13% relative) over the baseline of 0.573.
-
 **Held-out target season:** The prediction year is never touched during training. Only seasons with a confirmed MVP are used for training.
+
+**OOB score as sanity check:** `oob_score=True` provides a free out-of-bag accuracy estimate during training without needing a separate validation split. It serves as a quick health check alongside the cross-validation average precision.
 
 ## Usage
 

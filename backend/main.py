@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from model import FEATURES, load_dataset, load_model, predict_season, simulate
+from serve import FEATURES, load_dataset, load_model, predict_season, simulate
 
 CURRENT_YEAR = 2026
 # Stats shown in API responses (raw, not normalized)
